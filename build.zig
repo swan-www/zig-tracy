@@ -85,13 +85,26 @@ pub fn build(b: *std.Build) void {
         if (tracy_timer_fallback) mod.addCMacro("TRACY_TIMER_FALLBACK", "");
         if (shared and target.result.os.tag == .windows) mod.addCMacro("TRACY_EXPORTS", "");
 
-        const lib = b.addLibrary(.{
-            .linkage = if (shared) .dynamic else .static,
-            .name = "tracy",
-            .root_module = mod,
-        });
-
-        b.installArtifact(lib);
+        if(shared)
+        {
+            const lib = b.addSharedLibrary(.{
+                .name = "tracy",
+                .root_source_file = mod.root_source_file,
+                .target = target,
+                .optimize = optimize,
+            });
+            b.installArtifact(lib);
+        }
+        else
+        {
+            const lib = b.addStaticLibrary(.{
+                .name = "tracy",
+                .root_source_file = mod.root_source_file,
+                .target = target,
+                .optimize = optimize,
+            });
+            b.installArtifact(lib);
+        }
     }
 }
 
